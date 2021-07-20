@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+  </head>
+  <body>
+    <h1><%= title %></h1>
+    <p>Here are the 30 latest files downloaded via Blockstream Satellite API:</p>
+    <table border="1">
+      <tr>
+        <th>Time received</th>
+        <th>Content</th>
+        <th>MIME-type</th>
+      </tr>
+      <% fileList.forEach(f => { %>
+        <tr>
+          <% function getTime(name) { return name.substring(0,4) + '/' + name.substring(4,6) + '/' + name.substring(6,8) + ' '
+          + name.substring(8,10) + ':' + name.substring(10,12) + ':' + name.substring(12,14) } %>
+          <td style="vertical-align: text-top; padding-top: 1rem;"><%= getTime(f.name) %></td>
+          <td style="overflow-wrap:anywhere;">
+            <% if (f.type === 'image/png' || f.type === 'image/jpg' || f.type === 'image/gif' || f.type === 'image/jpeg') { %>
+              <img src="<%= `https://${process.env.S3_BUCKET_NAME}.s3.amazonaws.com/downloads/${f.name}` %>" max-width="80vw">
+            <% } if (f.type === 'text/plain' || f.type === 'application/pgp' || f.type === 'text/html') { %>
+              <p style="white-space: pre-wrap; text-align: left; max-width: 80vw;"><%= f.text %></p>
+            <% } %>
+          </td>
+          <td style="vertical-align: text-top; padding-top: 1rem;"><%= f.type %></td>
+        </tr>
+      <% }) %>
+      </table>
+  </body>
+</html>
