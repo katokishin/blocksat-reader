@@ -71,10 +71,16 @@ if (process.env.ENVIRONMENT === 'antenna') {
                   .then(model => {
                     console.log(`File ${file} added to database`)
                   })
+                  .catch(err => {
+                    console.error(err)
+                  })
               } else if (result === 'text/plain' || result === 'text/html' || result === 'application/pgp') {
                 new Entry({ type: result, name: file, url: '', text: fs.readFileSync(process.env.BLOCKSAT_DIR + '/' + file)}).save()
                   .then(model => {
                     console.log(`File ${file} added to database`)
+                  })
+                  .catch(err => {
+                    console.error(Err)
                   })
               }
               console.log(data)
