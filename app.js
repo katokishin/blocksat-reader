@@ -67,7 +67,9 @@ if (process.env.ENVIRONMENT === 'antenna') {
               // Upload was successful, so let's also add the file to the database
               let values = ''
               if (result === 'image/jpeg' || result === 'image/gif' || result === 'image/png' || result === 'image/jpg') {
-                new Entry({ type: result, name: file, url: `https://${process.env.S3_BUCKET_NAME}.s3.amazonaws.com/downloads/${file}`, text: ''}).save()
+                new Entry(
+                  { type: result, name: file, url: `https://${process.env.S3_BUCKET_NAME}.s3.amazonaws.com/downloads/${file}`, text: ''})
+                  .save({}, { method: 'insert', require: true })
                   .then(model => {
                     console.log(`File ${file} added to database`)
                   })
@@ -75,12 +77,13 @@ if (process.env.ENVIRONMENT === 'antenna') {
                     console.error(err)
                   })
               } else if (result === 'text/plain' || result === 'text/html' || result === 'application/pgp') {
-                new Entry({ type: result, name: file, url: '', text: fs.readFileSync(process.env.BLOCKSAT_DIR + '/' + file)}).save()
+                new Entry({ type: result, name: file, url: '', text: fs.readFileSync(process.env.BLOCKSAT_DIR + '/' + file)})
+                  .save({}, { method: 'insert', require: true })
                   .then(model => {
                     console.log(`File ${file} added to database`)
                   })
                   .catch(err => {
-                    console.error(Err)
+                    console.error(err)
                   })
               }
               console.log(data)
