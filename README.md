@@ -8,11 +8,11 @@ When running on the same network as a SAT-IP antenna listening to the Blockstrea
 will upload text and image files to AWS S3, as well as update a Postgres database containing text and URL info
 for use by this Express app when run on Heroku.
 
-`git clone` this repository
-create and edit `.env` file (use `.env.example` as template)
-`npm install`
-make sure `blocksat-cli sat-ip -a local.ip.of.antenna` and `blocksat-cli api listen --save-raw --plaintext --echo` are running
-`npm start`
+1. `git clone` this repository
+1. create and edit `.env` file (use `.env.example` as template)
+1. `npm install`
+1. make sure `blocksat-cli sat-ip -a local.ip.of.antenna` and `blocksat-cli api listen --save-raw --plaintext --echo` are running
+1. `npm start`
 
 Keep this program running, otherwise you will not get updates!
 
