@@ -11,7 +11,7 @@ for use by this Express app when run on Heroku.
 1. `git clone` this repository
 1. create and edit `.env` file (use `.env.example` as template)
 1. `npm install`
-1. make sure `blocksat-cli sat-ip -a local.ip.of.antenna` and `blocksat-cli api listen --save-raw --plaintext --echo` are running
+1. make sure `blocksat-cli sat-ip -a local.ip.of.antenna --ignore-http-errors` and `blocksat-cli api listen --save-raw --plaintext --echo` are running
 1. `npm start`
 
 Keep this program running, otherwise you will not get updates!
