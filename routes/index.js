@@ -33,7 +33,7 @@ router.get('/rss.xml', async (req, res, next) => {
       descriptions: 'The 30 latest transmissions received via Blocksat',
       feed_url: 'https://blocksat-reader.herokuapp.com/rss.xml',
       site_url: 'https://blocksat-reader.herokuapp.com',
-      webMaster: '@btc_dakara on Twitter'
+      webMaster: 'kishin@trustless-services.com'
     })
 
     // Get list of 30 recent entries & add them to feed
