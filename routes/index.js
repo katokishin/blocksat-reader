@@ -49,7 +49,7 @@ router.get('/rss.xml', async (req, res, next) => {
           })
         })
         res.type('application/xml')
-        res.send(feed)
+        res.send(feed.xml({ indent: true }))
       })
       .catch(err => {
         console.error(err)
