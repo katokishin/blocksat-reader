@@ -48,6 +48,7 @@ router.get('/rss.xml', async (req, res, next) => {
             date: nameToDate(entry.name)
           })
         })
+        res.type('application/xml')
         res.send(feed)
       })
       .catch(err => {
