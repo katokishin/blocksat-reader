@@ -33,7 +33,7 @@ router.get('/rss.xml', async (req, res, next) => {
       descriptions: 'The 30 latest transmissions received via Blocksat',
       feed_url: 'https://blocksat-reader.herokuapp.com/rss.xml',
       site_url: 'https://blocksat-reader.herokuapp.com',
-      webMaster: 'kishin@trustless-services.com'
+      webMaster: 'kishin@trustless-services.com (Kishin Kato)'
     })
 
     // Get list of 30 recent entries & add them to feed
@@ -64,6 +64,14 @@ const nameToDate = name => {
   return new Date(name.substring(0,4) + '-' + name.substring(4,6) + '-' + name.substring(6,8) + ' '
           + name.substring(8,10) + ':' + name.substring(10,12) + ':' + name.substring(12,14)
           + ' +0900')
+}
+
+/* Helper: escape HTML text in RSS description. Unused for now, as node-rss uses CDATA tag */
+const escapeHtml = string => {
+  return string.replace(
+    /[^0-9A-Za-z ]/g,
+    c => "&#" + c.charCodeAt(0) + ";"
+  )
 }
 
 module.exports = router
