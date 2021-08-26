@@ -42,9 +42,10 @@ router.get('/rss.xml', async (req, res, next) => {
         // console.log(entries.serialize())
         entries.serialize().forEach(entry => {
           feed.item({
-            title: `${entry.name}, type: ${entry.type}`,
+            title: `${entry.text.substring(0, 30)}... [${entry.type}]`,
             description: `${entry.text} ${entry.url ? `<img src="${entry.url}">` : ''}`,
-            date: nameToDate(entry.name)
+            date: nameToDate(entry.name),
+            guid: entry.name
           })
         })
         res.type('application/xml')
