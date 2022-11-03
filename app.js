@@ -26,7 +26,10 @@ if (process.env.ENVIRONMENT === 'antenna') {
     try {
       // console.log('Running cronjob...')
       // Check for latest file on S3
-      s3.listObjectsV2({ Bucket: process.env.S3_BUCKET_NAME, Prefix: 'downloads/' }, (err, data) => {
+      let today = new Date()
+      const days = 86400000
+      const monthago = new Date(today - (30*days))
+      s3.listObjectsV2({ Bucket: process.env.S3_BUCKET_NAME, Prefix: 'downloads/', StartAfter: `downloads/${monthago.toISOString().slice(0,10).replaceAll('-', '')}000000` }, (err, data) => {
         if (err) {
           console.error(err)
           return
