@@ -54,7 +54,7 @@ if (process.env.ENVIRONMENT === 'antenna') {
         for (const file of updateList) {
           magic.detectFile(process.env.BLOCKSAT_DIR + '/' + file, (err, result) => {
             console.log(`Detected file of MIME type ${result}, uploading...`)
-            s3.upload({
+            s3.putObject({
               Bucket: process.env.S3_BUCKET_NAME,
               Body: fs.readFileSync(process.env.BLOCKSAT_DIR + '/' + file),
               ContentType: result,
