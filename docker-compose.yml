@@ -1,0 +1,14 @@
+version: '3'
+
+services:
+    blocksat-cli-sat-ip:
+        image: blockstream/blocksat-host
+
+    blocksat-cli-api:
+        image: blockstream/blocksat-host
+
+    blocksat-reader:
+        build:
+            context: .
+        ports:
+            - "80:3000"
