@@ -153,7 +153,7 @@ async function signEvent(content) {
         tags: [],
         content
       }
-    event.id = nostr.getEventHash(event.id)
+    event.id = nostr.getEventHash(event)
     event.sig = await nostr.signEvent(event, process.env.NOSTR_PRIVKEY)
     return event
   } catch (err) {
