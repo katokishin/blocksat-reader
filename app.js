@@ -71,63 +71,65 @@ if (process.env.ENVIRONMENT === 'antenna') {
   
       // If so, upload to S3 with proper MIME type
       let magic = new Magic(mmm.MAGIC_MIME_TYPE)
+      function wrappedMagicDetect(pathToFile) {
+        return new Promise((resolve, reject) => magic.detectFile(pathToFile, (reject, resolve)))
+      }
       for (const file of updateList) {
-        magic.detectFile(process.env.BLOCKSAT_DIR + '/' + file, (err, result) => {
-          console.log(`Detected file of MIME type ${result}, uploading...`)
-          let upload = await s3.putObject({
-            Bucket: process.env.S3_BUCKET_NAME,
-            Body: fs.readFileSync(process.env.BLOCKSAT_DIR + '/' + file),
-            ContentType: result,
-            Key: 'downloads/' + file
-          })
-          // Upload was successful, so let's also add the file to the database
-          // This is where Nostr relays should be notified too
-          let values = ''
-          if (result === 'image/jpeg' || result === 'image/gif' || result === 'image/png' || result === 'image/jpg') {
-            new Entry(
-              { type: result, name: file, url: `https://${process.env.S3_BUCKET_NAME}.s3.amazonaws.com/downloads/${file}`, text: ''})
-              .save({}, { method: 'insert', require: true })
-              .then(model => {
-                console.log(`File ${file} added to database`)
-              })
-              .catch(err => {
-                console.error(err)
-              })
-                
-            let event = await signEvent(`New image received on Blocksat: https://${process.env.S3_BUCKET_NAME}.s3.amazonaws.com/downloads/${file}`)
-            damus.publish(event)
-            rsslay.publish(event)
-            bitcoinerSocial.publish(event)
-            damus.on('ok', () => damus.close())
-            damus.on('failed', () => { console.error('Failed to post to damus'); damus.close()})
-            rsslay.on('ok', () => rsslay.close())
-            rsslay.on('failed', () => { console.error('Failed to post to rsslay'); rsslay.close()})
-            bitcoinerSocial.on('ok', () => bitcoinerSocial.close())
-            bitcoinerSocial.on('failed', () => { console.error('Failed to post to bitcoinerSocial'); bitcoinerSocial.close()})
-                
-          } else if (result === 'text/plain' || result === 'text/html' || result === 'application/pgp') {
-            new Entry({ type: result, name: file, url: '', text: fs.readFileSync(process.env.BLOCKSAT_DIR + '/' + file)})
-              .save({}, { method: 'insert', require: true })
-              .then(model => {
-                console.log(`File ${file} added to database`)
-              })
-              .catch(err => {
-                console.error(err)
-              })
-
-            let event = await signEvent(`Overheard on Blocksat: ${fs.readFileSync(process.env.BLOCKSAT_DIR + '/' + file)}`)
-            damus.publish(event)
-            rsslay.publish(event)
-            bitcoinerSocial.publish(event)
-            damus.on('ok', () => damus.close())
-            damus.on('failed', () => { console.error('Failed to post to damus'); damus.close()})
-            rsslay.on('ok', () => rsslay.close())
-            rsslay.on('failed', () => { console.error('Failed to post to rsslay'); rsslay.close()})
-            bitcoinerSocial.on('ok', () => bitcoinerSocial.close())
-            bitcoinerSocial.on('failed', () => { console.error('Failed to post to bitcoinerSocial'); bitcoinerSocial.close()})
-          }
-          console.log(upload)
+        let mimeType = await wrappedMagicDetect(process.env.BLOCKSAT_DIR + '/' + file)
+        console.log(`Detected file of MIME type ${mimeType}, uploading...`)
+        let upload = await s3.putObject({
+          Bucket: process.env.S3_BUCKET_NAME,
+          Body: fs.readFileSync(process.env.BLOCKSAT_DIR + '/' + file),
+          ContentType: mimeType,
+          Key: 'downloads/' + file
         })
+        // Upload was successful, so let's also add the file to the database
+        // This is where Nostr relays should be notified too
+        let values = ''
+        if (mimeType === 'image/jpeg' || mimeType === 'image/gif' || mimeType === 'image/png' || mimeType === 'image/jpg') {
+          new Entry(
+            { type: mimeType, name: file, url: `https://${process.env.S3_BUCKET_NAME}.s3.amazonaws.com/downloads/${file}`, text: ''})
+            .save({}, { method: 'insert', require: true })
+            .then(model => {
+              console.log(`File ${file} added to database`)
+            })
+            .catch(err => {
+              console.error(err)
+            })
+              
+          let event = await signEvent(`New image received on Blocksat: https://${process.env.S3_BUCKET_NAME}.s3.amazonaws.com/downloads/${file}`)
+          damus.publish(event)
+          rsslay.publish(event)
+          bitcoinerSocial.publish(event)
+          damus.on('ok', () => damus.close())
+          damus.on('failed', () => { console.error('Failed to post to damus'); damus.close()})
+          rsslay.on('ok', () => rsslay.close())
+          rsslay.on('failed', () => { console.error('Failed to post to rsslay'); rsslay.close()})
+          bitcoinerSocial.on('ok', () => bitcoinerSocial.close())
+          bitcoinerSocial.on('failed', () => { console.error('Failed to post to bitcoinerSocial'); bitcoinerSocial.close()})
+                
+        } else if (mimeType === 'text/plain' || mimeType === 'text/html' || mimeType === 'application/pgp') {
+          new Entry({ type: mimeType, name: file, url: '', text: fs.readFileSync(process.env.BLOCKSAT_DIR + '/' + file)})
+            .save({}, { method: 'insert', require: true })
+            .then(model => {
+              console.log(`File ${file} added to database`)
+            })
+            .catch(err => {
+              console.error(err)
+            })
+
+          let event = await signEvent(`Overheard on Blocksat: ${fs.readFileSync(process.env.BLOCKSAT_DIR + '/' + file)}`)
+          damus.publish(event)
+          rsslay.publish(event)
+          bitcoinerSocial.publish(event)
+          damus.on('ok', () => damus.close())
+          damus.on('failed', () => { console.error('Failed to post to damus'); damus.close()})
+          rsslay.on('ok', () => rsslay.close())
+          rsslay.on('failed', () => { console.error('Failed to post to rsslay'); rsslay.close()})
+          bitcoinerSocial.on('ok', () => bitcoinerSocial.close())
+          bitcoinerSocial.on('failed', () => { console.error('Failed to post to bitcoinerSocial'); bitcoinerSocial.close()})
+        }
+        console.log(upload)
       }
     } catch (err) {
       console.error(err)
