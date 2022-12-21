@@ -19,9 +19,11 @@
     "mmmagic": "^0.5.3",
     "morgan": "~1.9.1",
     "node-cron": "^3.0.0",
+    "node-fetch": "^3.3.0",
     "nodemon": "^2.0.12",
     "nostr-tools": "^1.0.0-beta",
     "pg": "^8.6.0",
-    "rss": "^1.2.2"
+    "rss": "^1.2.2",
+    "websocket-polyfill": "^0.0.3"
   }
 }
