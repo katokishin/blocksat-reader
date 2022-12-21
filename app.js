@@ -4,10 +4,13 @@ const path = require('path')
 const cookieParser = require('cookie-parser')
 const logger = require('morgan')
 
-const wsPolyfill = require('websocket-polyfill')
+const { WebSocket } = require('websocket-polyfill')
 const fetch = require('node-fetch')
 if (!globalThis.fetch) {
   globalThis.fetch = fetch
+}
+if (!globalThis.WebSocket) {
+  globalThis.WebSocket = WebSocket
 }
 const nostr = require('nostr-tools')
 
@@ -38,11 +41,20 @@ if (process.env.ENVIRONMENT === 'antenna') {
       damus.on('connect', () => {
         console.log(`Connected to ${damus.url}`)
       })
+      damus.on('error', () => {
+        console.log(`Failed to connect to ${damus.url}`)
+      })
       rsslay.on('connect', () => {
-        console.log(`Connected to ${damus.url}`)
+        console.log(`Connected to ${rsslay.url}`)
+      })
+      rsslay.on('error', () => {
+        console.log(`Failed to connect to ${rsslay.url}`)
       })
       bitcoinerSocial.on('connect', () => {
-        console.log(`Connected to ${damus.url}`)
+        console.log(`Connected to ${bitcoinerSocial.url}`)
+      })
+      bitcoinerSocial.on('error', () => {
+        console.log(`Failed to connect to ${bitcoinerSocial.url}`)
       })
       // console.log('Running cronjob...')
       // Check for latest file on S3
