@@ -70,9 +70,17 @@ if (process.env.ENVIRONMENT === 'antenna') {
       console.log('Files not yet synced: ' + updateList)
   
       // If so, upload to S3 with proper MIME type
-      let magic = new Magic(mmm.MAGIC_MIME_TYPE)
       function wrappedMagicDetect(pathToFile) {
-        return new Promise((resolve, reject) => magic.detectFile(pathToFile, (reject, resolve)))
+        return new Promise((resolve, reject) => {
+          let magic = new Magic(mmm.MAGIC_MIME_TYPE)
+          magic.detectFile(pathToFile, (err, result) => {
+            if (err) {
+              reject(err)
+              return
+            }
+            resolve(result)
+          })
+        })
       }
       for (const file of updateList) {
         let mimeType = await wrappedMagicDetect(process.env.BLOCKSAT_DIR + '/' + file)
