@@ -105,6 +105,12 @@ if (process.env.ENVIRONMENT === 'antenna') {
                 damus.publish(event)
                 rsslay.publish(event)
                 bitcoinerSocial.publish(event)
+                damus.on('ok', () => damus.close())
+                damus.on('failed', () => { console.error('Failed to post to damus'); damus.close()})
+                rsslay.on('ok', () => rsslay.close())
+                rsslay.on('failed', () => { console.error('Failed to post to rsslay'); rsslay.close()})
+                bitcoinerSocial.on('ok', () => bitcoinerSocial.close())
+                bitcoinerSocial.on('failed', () => { console.error('Failed to post to bitcoinerSocial'); bitcoinerSocial.close()})
                 
               } else if (result === 'text/plain' || result === 'text/html' || result === 'application/pgp') {
                 new Entry({ type: result, name: file, url: '', text: fs.readFileSync(process.env.BLOCKSAT_DIR + '/' + file)})
@@ -120,6 +126,12 @@ if (process.env.ENVIRONMENT === 'antenna') {
                 damus.publish(event)
                 rsslay.publish(event)
                 bitcoinerSocial.publish(event)
+                damus.on('ok', () => damus.close())
+                damus.on('failed', () => { console.error('Failed to post to damus'); damus.close()})
+                rsslay.on('ok', () => rsslay.close())
+                rsslay.on('failed', () => { console.error('Failed to post to rsslay'); rsslay.close()})
+                bitcoinerSocial.on('ok', () => bitcoinerSocial.close())
+                bitcoinerSocial.on('failed', () => { console.error('Failed to post to bitcoinerSocial'); bitcoinerSocial.close()})
               }
               console.log(data)
             })
