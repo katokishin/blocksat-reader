@@ -22,8 +22,23 @@ if (process.env.ENVIRONMENT === 'antenna') {
 
   const Entry = require('./models/entry')
 
+  const nostr = require('nostr-tools')
+
   cron.schedule('* * * * *', async () => {
     try {
+      const damus = nostr.relayInit('wss://relay.damus.io')
+      const rsslay = nostr.relayInit('wss://rsslay.fiatjaf.com')
+      const bitcoinerSocial = nostr.relayInit('wss://nostr.bitcoiner.social')
+    
+      damus.on('connect', () => {
+        console.log(`Connected to ${damus.url}`)
+      })
+      rsslay.on('connect', () => {
+        console.log(`Connected to ${damus.url}`)
+      })
+      bitcoinerSocial.on('connect', () => {
+        console.log(`Connected to ${damus.url}`)
+      })
       // console.log('Running cronjob...')
       // Check for latest file on S3
       let today = new Date()
@@ -68,6 +83,7 @@ if (process.env.ENVIRONMENT === 'antenna') {
                 return
               }
               // Upload was successful, so let's also add the file to the database
+              // This is where Nostr relays should be notified too
               let values = ''
               if (result === 'image/jpeg' || result === 'image/gif' || result === 'image/png' || result === 'image/jpg') {
                 new Entry(
@@ -79,6 +95,20 @@ if (process.env.ENVIRONMENT === 'antenna') {
                   .catch(err => {
                     console.error(err)
                   })
+                
+                let event = {
+                  kind: 1,
+                  pubkey: nostr.getPublicKey(process.env.NOSTR_PRIVKEY),
+                  created_at: Math.floor(Date.now() / 1000),
+                  tags: [],
+                  content: `New image received on Blocksat: https://${process.env.S3_BUCKET_NAME}.s3.amazonaws.com/downloads/${file}`
+                }
+                event.id = nostr.getEventHash(event.id)
+                event.sig = await nostr.signEvent(event, process.env.NOSTR_PRIVKEY)
+                damus.publish(event)
+                rsslay.publish(event)
+                bitcoinerSocial.publish(event)
+                
               } else if (result === 'text/plain' || result === 'text/html' || result === 'application/pgp') {
                 new Entry({ type: result, name: file, url: '', text: fs.readFileSync(process.env.BLOCKSAT_DIR + '/' + file)})
                   .save({}, { method: 'insert', require: true })
@@ -88,6 +118,19 @@ if (process.env.ENVIRONMENT === 'antenna') {
                   .catch(err => {
                     console.error(err)
                   })
+
+                let event = {
+                  kind: 1,
+                  pubkey: nostr.getPublicKey(process.env.NOSTR_PRIVKEY),
+                  created_at: Math.floor(Date.now() / 1000),
+                  tags: [],
+                  content: `Overheard on Blocksat: ${fs.readFileSync(process.env.BLOCKSAT_DIR + '/' + file)}`
+                }
+                event.id = nostr.getEventHash(event.id)
+                event.sig = await nostr.signEvent(event, process.env.NOSTR_PRIVKEY)
+                damus.publish(event)
+                rsslay.publish(event)
+                bitcoinerSocial.publish(event)
               }
               console.log(data)
             })

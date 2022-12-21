@@ -20,6 +20,7 @@
     "morgan": "~1.9.1",
     "node-cron": "^3.0.0",
     "nodemon": "^2.0.12",
+    "nostr-tools": "^1.0.0-beta",
     "pg": "^8.6.0",
     "rss": "^1.2.2"
   }
