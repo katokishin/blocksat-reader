@@ -37,19 +37,22 @@ if (process.env.ENVIRONMENT === 'antenna') {
       const damus = nostr.relayInit('wss://relay.damus.io')
       const rsslay = nostr.relayInit('wss://rsslay.fiatjaf.com')
       const bitcoinerSocial = nostr.relayInit('wss://nostr.bitcoiner.social')
-    
+      
+      damus.connect()
       damus.on('connect', () => {
         console.log(`Connected to ${damus.url}`)
       })
       damus.on('error', () => {
         console.log(`Failed to connect to ${damus.url}`)
       })
+      rsslay.connect()
       rsslay.on('connect', () => {
         console.log(`Connected to ${rsslay.url}`)
       })
       rsslay.on('error', () => {
         console.log(`Failed to connect to ${rsslay.url}`)
       })
+      bitcoinerSocial.connect()
       bitcoinerSocial.on('connect', () => {
         console.log(`Connected to ${bitcoinerSocial.url}`)
       })
@@ -127,9 +130,6 @@ if (process.env.ENVIRONMENT === 'antenna') {
           rsslay.on('failed', () => { console.error('Failed to post to rsslay') })
           bitcoinerSocial.on('ok', () => 'bitcoinerSocial success')
           bitcoinerSocial.on('failed', () => { console.error('Failed to post to bitcoinerSocial') })
-          await damus.close()
-          await rsslay.close()
-          await bitcoinerSocial.close()
                 
         } else if (mimeType === 'text/plain' || mimeType === 'text/html' || mimeType === 'application/pgp') {
           new Entry({ type: mimeType, name: file, url: '', text: fs.readFileSync(process.env.BLOCKSAT_DIR + '/' + file)})
@@ -151,11 +151,11 @@ if (process.env.ENVIRONMENT === 'antenna') {
           rsslay.on('failed', () => { console.error('Failed to post to rsslay') })
           bitcoinerSocial.on('ok', () => 'bitcoinerSocial success')
           bitcoinerSocial.on('failed', () => { console.error('Failed to post to bitcoinerSocial') })
-          await damus.close()
-          await rsslay.close()
-          await bitcoinerSocial.close()
         }
         console.log(upload)
+        await damus.close()
+        await rsslay.close()
+        await bitcoinerSocial.close()
       }
     } catch (err) {
       console.error(err)
