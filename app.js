@@ -49,7 +49,10 @@ if (process.env.ENVIRONMENT === 'antenna') {
       let today = new Date()
       const days = 86400000
       const monthago = new Date(today - (30*days))
-      let data = await s3.listObjectsV2({ Bucket: process.env.S3_BUCKET_NAME, Prefix: 'downloads/', StartAfter: `downloads/${monthago.toISOString().slice(0,10).replaceAll('-', '')}000000` })
+      function wrappedListObjsV2(args) {
+        return new Promise((resolve, reject) => s3.listObjectsV2(args, (reject, resolve)))
+      }
+      let data = await wrappedListObjsV2({ Bucket: process.env.S3_BUCKET_NAME, Prefix: 'downloads/', StartAfter: `downloads/${monthago.toISOString().slice(0,10).replaceAll('-', '')}000000` })
       
       // Order from newest to oldest and find newest one
       let s3files = data.Contents
