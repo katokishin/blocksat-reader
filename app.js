@@ -49,95 +49,86 @@ if (process.env.ENVIRONMENT === 'antenna') {
       let today = new Date()
       const days = 86400000
       const monthago = new Date(today - (30*days))
-      s3.listObjectsV2({ Bucket: process.env.S3_BUCKET_NAME, Prefix: 'downloads/', StartAfter: `downloads/${monthago.toISOString().slice(0,10).replaceAll('-', '')}000000` }, (err, data) => {
-        if (err) {
-          console.error(err)
-          return
-        }
-        // Order from newest to oldest and find newest one
-        let s3files = data.Contents
-        s3files.sort((a, b) => parseInt(b.Key.split('/')[1]) - parseInt(a.Key.split('/')[1]))
-        let latestS3 = 0
-        if (s3files.length > 1) {
-          latestS3 = s3files[1].Key.split('/')[1] //Index 0 is the downloads/ folder itself
-        }
-        // console.log(`Latest file is ${latestS3}`)
+      let data = await s3.listObjectsV2({ Bucket: process.env.S3_BUCKET_NAME, Prefix: 'downloads/', StartAfter: `downloads/${monthago.toISOString().slice(0,10).replaceAll('-', '')}000000` })
+      
+      // Order from newest to oldest and find newest one
+      let s3files = data.Contents
+      s3files.sort((a, b) => parseInt(b.Key.split('/')[1]) - parseInt(a.Key.split('/')[1]))
+      let latestS3 = 0
+      if (s3files.length > 1) {
+        latestS3 = s3files[1].Key.split('/')[1] //Index 0 is the downloads/ folder itself
+      }
+      // console.log(`Latest file is ${latestS3}`)
   
-        // Check if there exist filenames newer than latestS3 on local folder
-        let fileList = fs.readdirSync(process.env.BLOCKSAT_DIR)
-        let updateList = fileList.filter(name => parseInt(name) - parseInt(latestS3) > 0)
-        if (updateList.length === 0) {
-          // console.log('No updates to be made')
-          return
-        }
-        console.log('Files not yet synced: ' + updateList)
+      // Check if there exist filenames newer than latestS3 on local folder
+      let fileList = fs.readdirSync(process.env.BLOCKSAT_DIR)
+      let updateList = fileList.filter(name => parseInt(name) - parseInt(latestS3) > 0)
+      if (updateList.length === 0) {
+        // console.log('No updates to be made')
+        return
+      }
+      console.log('Files not yet synced: ' + updateList)
   
-        // If so, upload to S3 with proper MIME type
-        let magic = new Magic(mmm.MAGIC_MIME_TYPE)
-        for (const file of updateList) {
-          magic.detectFile(process.env.BLOCKSAT_DIR + '/' + file, (err, result) => {
-            console.log(`Detected file of MIME type ${result}, uploading...`)
-            s3.putObject({
-              Bucket: process.env.S3_BUCKET_NAME,
-              Body: fs.readFileSync(process.env.BLOCKSAT_DIR + '/' + file),
-              ContentType: result,
-              Key: 'downloads/' + file
-            }, (err, data) => {
-              if (err) {
-                console.error(err)
-                return
-              }
-              // Upload was successful, so let's also add the file to the database
-              // This is where Nostr relays should be notified too
-              let values = ''
-              if (result === 'image/jpeg' || result === 'image/gif' || result === 'image/png' || result === 'image/jpg') {
-                new Entry(
-                  { type: result, name: file, url: `https://${process.env.S3_BUCKET_NAME}.s3.amazonaws.com/downloads/${file}`, text: ''})
-                  .save({}, { method: 'insert', require: true })
-                  .then(model => {
-                    console.log(`File ${file} added to database`)
-                  })
-                  .catch(err => {
-                    console.error(err)
-                  })
-                
-                let event = signEvent(`New image received on Blocksat: https://${process.env.S3_BUCKET_NAME}.s3.amazonaws.com/downloads/${file}`)
-                damus.publish(event)
-                rsslay.publish(event)
-                bitcoinerSocial.publish(event)
-                damus.on('ok', () => damus.close())
-                damus.on('failed', () => { console.error('Failed to post to damus'); damus.close()})
-                rsslay.on('ok', () => rsslay.close())
-                rsslay.on('failed', () => { console.error('Failed to post to rsslay'); rsslay.close()})
-                bitcoinerSocial.on('ok', () => bitcoinerSocial.close())
-                bitcoinerSocial.on('failed', () => { console.error('Failed to post to bitcoinerSocial'); bitcoinerSocial.close()})
-                
-              } else if (result === 'text/plain' || result === 'text/html' || result === 'application/pgp') {
-                new Entry({ type: result, name: file, url: '', text: fs.readFileSync(process.env.BLOCKSAT_DIR + '/' + file)})
-                  .save({}, { method: 'insert', require: true })
-                  .then(model => {
-                    console.log(`File ${file} added to database`)
-                  })
-                  .catch(err => {
-                    console.error(err)
-                  })
-
-                let event = signEvent(`Overheard on Blocksat: ${fs.readFileSync(process.env.BLOCKSAT_DIR + '/' + file)}`)
-                damus.publish(event)
-                rsslay.publish(event)
-                bitcoinerSocial.publish(event)
-                damus.on('ok', () => damus.close())
-                damus.on('failed', () => { console.error('Failed to post to damus'); damus.close()})
-                rsslay.on('ok', () => rsslay.close())
-                rsslay.on('failed', () => { console.error('Failed to post to rsslay'); rsslay.close()})
-                bitcoinerSocial.on('ok', () => bitcoinerSocial.close())
-                bitcoinerSocial.on('failed', () => { console.error('Failed to post to bitcoinerSocial'); bitcoinerSocial.close()})
-              }
-              console.log(data)
-            })
+      // If so, upload to S3 with proper MIME type
+      let magic = new Magic(mmm.MAGIC_MIME_TYPE)
+      for (const file of updateList) {
+        magic.detectFile(process.env.BLOCKSAT_DIR + '/' + file, (err, result) => {
+          console.log(`Detected file of MIME type ${result}, uploading...`)
+          let upload = await s3.putObject({
+            Bucket: process.env.S3_BUCKET_NAME,
+            Body: fs.readFileSync(process.env.BLOCKSAT_DIR + '/' + file),
+            ContentType: result,
+            Key: 'downloads/' + file
           })
-        }
-      })
+          // Upload was successful, so let's also add the file to the database
+          // This is where Nostr relays should be notified too
+          let values = ''
+          if (result === 'image/jpeg' || result === 'image/gif' || result === 'image/png' || result === 'image/jpg') {
+            new Entry(
+              { type: result, name: file, url: `https://${process.env.S3_BUCKET_NAME}.s3.amazonaws.com/downloads/${file}`, text: ''})
+              .save({}, { method: 'insert', require: true })
+              .then(model => {
+                console.log(`File ${file} added to database`)
+              })
+              .catch(err => {
+                console.error(err)
+              })
+                
+            let event = await signEvent(`New image received on Blocksat: https://${process.env.S3_BUCKET_NAME}.s3.amazonaws.com/downloads/${file}`)
+            damus.publish(event)
+            rsslay.publish(event)
+            bitcoinerSocial.publish(event)
+            damus.on('ok', () => damus.close())
+            damus.on('failed', () => { console.error('Failed to post to damus'); damus.close()})
+            rsslay.on('ok', () => rsslay.close())
+            rsslay.on('failed', () => { console.error('Failed to post to rsslay'); rsslay.close()})
+            bitcoinerSocial.on('ok', () => bitcoinerSocial.close())
+            bitcoinerSocial.on('failed', () => { console.error('Failed to post to bitcoinerSocial'); bitcoinerSocial.close()})
+                
+          } else if (result === 'text/plain' || result === 'text/html' || result === 'application/pgp') {
+            new Entry({ type: result, name: file, url: '', text: fs.readFileSync(process.env.BLOCKSAT_DIR + '/' + file)})
+              .save({}, { method: 'insert', require: true })
+              .then(model => {
+                console.log(`File ${file} added to database`)
+              })
+              .catch(err => {
+                console.error(err)
+              })
+
+            let event = await signEvent(`Overheard on Blocksat: ${fs.readFileSync(process.env.BLOCKSAT_DIR + '/' + file)}`)
+            damus.publish(event)
+            rsslay.publish(event)
+            bitcoinerSocial.publish(event)
+            damus.on('ok', () => damus.close())
+            damus.on('failed', () => { console.error('Failed to post to damus'); damus.close()})
+            rsslay.on('ok', () => rsslay.close())
+            rsslay.on('failed', () => { console.error('Failed to post to rsslay'); rsslay.close()})
+            bitcoinerSocial.on('ok', () => bitcoinerSocial.close())
+            bitcoinerSocial.on('failed', () => { console.error('Failed to post to bitcoinerSocial'); bitcoinerSocial.close()})
+          }
+          console.log(upload)
+        })
+      }
     } catch (err) {
       console.error(err)
     }
