@@ -96,15 +96,7 @@ if (process.env.ENVIRONMENT === 'antenna') {
                     console.error(err)
                   })
                 
-                let event = {
-                  kind: 1,
-                  pubkey: nostr.getPublicKey(process.env.NOSTR_PRIVKEY),
-                  created_at: Math.floor(Date.now() / 1000),
-                  tags: [],
-                  content: `New image received on Blocksat: https://${process.env.S3_BUCKET_NAME}.s3.amazonaws.com/downloads/${file}`
-                }
-                event.id = nostr.getEventHash(event.id)
-                event.sig = await nostr.signEvent(event, process.env.NOSTR_PRIVKEY)
+                let event = signEvent(`New image received on Blocksat: https://${process.env.S3_BUCKET_NAME}.s3.amazonaws.com/downloads/${file}`)
                 damus.publish(event)
                 rsslay.publish(event)
                 bitcoinerSocial.publish(event)
@@ -119,15 +111,7 @@ if (process.env.ENVIRONMENT === 'antenna') {
                     console.error(err)
                   })
 
-                let event = {
-                  kind: 1,
-                  pubkey: nostr.getPublicKey(process.env.NOSTR_PRIVKEY),
-                  created_at: Math.floor(Date.now() / 1000),
-                  tags: [],
-                  content: `Overheard on Blocksat: ${fs.readFileSync(process.env.BLOCKSAT_DIR + '/' + file)}`
-                }
-                event.id = nostr.getEventHash(event.id)
-                event.sig = await nostr.signEvent(event, process.env.NOSTR_PRIVKEY)
+                let event = signEvent(`Overheard on Blocksat: ${fs.readFileSync(process.env.BLOCKSAT_DIR + '/' + file)}`)
                 damus.publish(event)
                 rsslay.publish(event)
                 bitcoinerSocial.publish(event)
@@ -141,6 +125,23 @@ if (process.env.ENVIRONMENT === 'antenna') {
       console.error(err)
     }
   })
+}
+
+async function signEvent(content) {
+  try {
+    let event = {
+        kind: 1,
+        pubkey: nostr.getPublicKey(process.env.NOSTR_PRIVKEY),
+        created_at: Math.floor(Date.now() / 1000),
+        tags: [],
+        content
+      }
+    event.id = nostr.getEventHash(event.id)
+    event.sig = await nostr.signEvent(event, process.env.NOSTR_PRIVKEY)
+    return event
+  } catch (err) {
+    console.error(err)
+  }
 }
 
 // view engine setup
