@@ -22,9 +22,9 @@ if (process.env.ENVIRONMENT === 'antenna') {
 
   const Entry = require('./models/entry')
 
-  import 'websocket-polyfill'
+  const wsPolyfill = require('websocket-polyfill')
   const nostr = require('nostr-tools')
-  nostr.nip05.useFetechImplementation(require('node-fetch'))
+  nostr.useFetechImplementation(require('node-fetch'))
 
   cron.schedule('* * * * *', async () => {
     try {
