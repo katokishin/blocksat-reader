@@ -56,6 +56,9 @@ if (process.env.ENVIRONMENT === 'antenna') {
       s3files.sort((a, b) => parseInt(b.Key.split('/')[1]) - parseInt(a.Key.split('/')[1]))
       let latestS3 = 0
       if (s3files.length > 1) {
+        console.log(`Index 0,0 is ${s3files[0].Key.split('/')[0]}`)
+        console.log(`Index 1,0 is ${s3files[1].Key.split('/')[0]}`)
+        console.log(`Index 0,1 is ${s3files[0].Key.split('/')[1]}`)
         latestS3 = s3files[1].Key.split('/')[1] //Index 0 is the downloads/ folder itself
       }
       // console.log(`Latest file is ${latestS3}`)
