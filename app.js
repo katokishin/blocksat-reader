@@ -153,10 +153,10 @@ if (process.env.ENVIRONMENT === 'antenna') {
           bitcoinerSocial.on('failed', () => { console.error('Failed to post to bitcoinerSocial') })
         }
         console.log(upload)
-        await damus.close()
-        await rsslay.close()
-        await bitcoinerSocial.close()
       }
+      await damus.close()
+      await rsslay.close()
+      await bitcoinerSocial.close()
     } catch (err) {
       console.error(err)
     }
