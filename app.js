@@ -23,8 +23,11 @@ if (process.env.ENVIRONMENT === 'antenna') {
   const Entry = require('./models/entry')
 
   const wsPolyfill = require('websocket-polyfill')
+  const fetch = require('node-fetch')
+  if (!globalThis.fetch) {
+    globalThis.fetch = fetch
+  }
   const nostr = require('nostr-tools')
-  nostr.useFetchImplementation(require('node-fetch'))
 
   cron.schedule('* * * * *', async () => {
     try {
