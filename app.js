@@ -117,7 +117,9 @@ if (process.env.ENVIRONMENT === 'antenna') {
               console.error(err)
             })
               
-          let event = await signEvent(`New image received on Blocksat: https://${process.env.S3_BUCKET_NAME}.s3.amazonaws.com/downloads/${file}`)
+          let event = await signEvent(JSON.stringify({
+            type: mimeType, name: file, url: `https://${process.env.S3_BUCKET_NAME}.s3.amazonaws.com/downloads/${file}`, text: ''
+          }))
           damus.publish(event)
           bitcoinerSocial.publish(event)
           damus.on('ok', () => 'damus success')
@@ -135,7 +137,9 @@ if (process.env.ENVIRONMENT === 'antenna') {
               console.error(err)
             })
 
-          let event = await signEvent(`Overheard on Blocksat: ${fs.readFileSync(process.env.BLOCKSAT_DIR + '/' + file)}`)
+          let event = await signEvent(JSON.stringify({
+            type: mimeType, name: file, url: '', text: fs.readFileSync(process.env.BLOCKSAT_DIR + '/' + file)
+          }))
           damus.publish(event)
           bitcoinerSocial.publish(event)
           damus.on('ok', () => 'damus success')
