@@ -31,7 +31,7 @@
           })
         })
       }
-      let relay = await getRelay()
+      let relay = (await getRelay())
       let sub = relay.sub([
         {
           kinds: [1],
