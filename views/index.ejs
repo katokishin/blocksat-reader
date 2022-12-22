@@ -32,10 +32,13 @@
         })
       }
       let relay = await getRelay()
+      // Start at one week ago or 1671687482, whichever is sooner
+      let startDate = Math.max(Math.floor(Date.now() / 1000)- 604800, 1671687482)
       let sub = relay.sub([
         {
           kinds: [1],
-          authors: ['2e3e962542609b370e0441f3a45c139c7e548287d63672dd6cc0717d825703f3']
+          authors: ['2e3e962542609b370e0441f3a45c139c7e548287d63672dd6cc0717d825703f3'],
+          since: startDate
         }
       ])
       sub.on('event', event => {
