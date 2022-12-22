@@ -32,25 +32,38 @@ if (process.env.ENVIRONMENT === 'antenna') {
 
   const Entry = require('./models/entry')
 
+  async function connectAndSendNostr(event) {
+    const damus = nostr.relayInit('wss://relay.damus.io')
+    const bitcoinerSocial = nostr.relayInit('wss://nostr.bitcoiner.social')
+    
+    await damus.connect()
+    damus.on('connect', () => {
+      console.log(`Connected to ${damus.url}`)
+    })
+    damus.on('error', () => {
+      console.log(`Failed to connect to ${damus.url}`)
+    })
+    await bitcoinerSocial.connect()
+    bitcoinerSocial.on('connect', () => {
+      console.log(`Connected to ${bitcoinerSocial.url}`)
+    })
+    bitcoinerSocial.on('error', () => {
+      console.log(`Failed to connect to ${bitcoinerSocial.url}`)
+    })
+
+    damus.publish(event)
+    bitcoinerSocial.publish(event)
+    damus.on('ok', () => 'damus success')
+    damus.on('failed', () => { console.error('Failed to post to damus') })
+    bitcoinerSocial.on('ok', () => 'bitcoinerSocial success')
+    bitcoinerSocial.on('failed', () => { console.error('Failed to post to bitcoinerSocial') })
+
+    await damus.close()
+    await bitcoinerSocial.close()
+  }
+
   cron.schedule('* * * * *', async () => {
     try {
-      const damus = nostr.relayInit('wss://relay.damus.io')
-      const bitcoinerSocial = nostr.relayInit('wss://nostr.bitcoiner.social')
-      
-      damus.connect()
-      damus.on('connect', () => {
-        console.log(`Connected to ${damus.url}`)
-      })
-      damus.on('error', () => {
-        console.log(`Failed to connect to ${damus.url}`)
-      })
-      bitcoinerSocial.connect()
-      bitcoinerSocial.on('connect', () => {
-        console.log(`Connected to ${bitcoinerSocial.url}`)
-      })
-      bitcoinerSocial.on('error', () => {
-        console.log(`Failed to connect to ${bitcoinerSocial.url}`)
-      })
       // console.log('Running cronjob...')
       // Check for latest file on S3
       let today = new Date()
@@ -120,12 +133,7 @@ if (process.env.ENVIRONMENT === 'antenna') {
           let event = await signEvent(JSON.stringify({
             type: mimeType, name: file, url: `https://${process.env.S3_BUCKET_NAME}.s3.amazonaws.com/downloads/${file}`, text: ''
           }))
-          damus.publish(event)
-          bitcoinerSocial.publish(event)
-          damus.on('ok', () => 'damus success')
-          damus.on('failed', () => { console.error('Failed to post to damus') })
-          bitcoinerSocial.on('ok', () => 'bitcoinerSocial success')
-          bitcoinerSocial.on('failed', () => { console.error('Failed to post to bitcoinerSocial') })
+          connectAndSendNostr(event)
                 
         } else if (mimeType === 'text/plain' || mimeType === 'text/html' || mimeType === 'application/pgp') {
           new Entry({ type: mimeType, name: file, url: '', text: fs.readFileSync(process.env.BLOCKSAT_DIR + '/' + file)})
@@ -140,17 +148,10 @@ if (process.env.ENVIRONMENT === 'antenna') {
           let event = await signEvent(JSON.stringify({
             type: mimeType, name: file, url: '', text: fs.readFileSync(process.env.BLOCKSAT_DIR + '/' + file)
           }))
-          damus.publish(event)
-          bitcoinerSocial.publish(event)
-          damus.on('ok', () => 'damus success')
-          damus.on('failed', () => { console.error('Failed to post to damus') })
-          bitcoinerSocial.on('ok', () => 'bitcoinerSocial success')
-          bitcoinerSocial.on('failed', () => { console.error('Failed to post to bitcoinerSocial') })
+          connectAndSendNostr(event)
         }
         console.log(upload)
       }
-      await damus.close()
-      await bitcoinerSocial.close()
     } catch (err) {
       console.error(err)
     }
