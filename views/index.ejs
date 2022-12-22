@@ -6,7 +6,7 @@
     <script src="https://unpkg.com/nostr-tools/lib/nostr.bundle.js"></script>
   </head>
   <body>
-    <script>
+    <script type="module">
       let damus = window.NostrTools.relayInit('wss://relay.damus.io')
       let bitSo = window.NostrTools.relayInit('wss://nostr.bitcoiner.social')
 
@@ -31,10 +31,7 @@
           })
         })
       }
-      let relay = (async () => {
-        let r = await getRelay()
-        return r
-      })
+      let relay = await getRelay()
       let sub = relay.sub([
         {
           kinds: [1],
