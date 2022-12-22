@@ -33,7 +33,7 @@
       }
       let relay = await getRelay()
       // Start at one week ago or 1671687482, whichever is sooner
-      let startDate = Math.max(Math.floor(Date.now() / 1000)- 604800, 1671687482)
+      let startDate = Math.max(Math.floor( (Date.now()/1000)-604800, 1671687482))
       let sub = relay.sub([
         {
           kinds: [1],
