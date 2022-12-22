@@ -21,11 +21,11 @@
             console.log(`Failed to connect to ${damus.url}`)
             bitSo.connect()
             bitSo.on('connect', () => {
-              console.log(`Connected to ${bitcoinerSocial.url}`)
+              console.log(`Connected to ${bitSo.url}`)
               resolve(bitSo)
             })
             bitSo.on('error', () => {
-              console.log(`Failed to connect to ${bitcoinerSocial.url}`)
+              console.log(`Failed to connect to ${bitSo.url}`)
               reject(`No Nostr Relay available`)
             })
           })
