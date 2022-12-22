@@ -3,11 +3,48 @@
   <head>
     <title><%= title %></title>
     <link rel='stylesheet' href='/stylesheets/style.css' />
+    <script src="https://unpkg.com/nostr-tools/lib/nostr.bundle.js"></script>
   </head>
   <body>
+    <script>
+      let damus = window.NostrTools.relayInit('wss://relay.damus.io')
+      let bitSo = window.NostrTools.relayInit('wss://nostr.bitcoiner.social')
+
+      async function getRelay() {
+        damus.connect()
+        damus.on('connect', () => {
+          console.log(`Connected to ${damus.url}`)
+          return damus
+        })
+        damus.on('error', () => {
+          console.log(`Failed to connect to ${damus.url}`)
+          bitSo.connect()
+          bitSo.on('connect', () => {
+            console.log(`Connected to ${bitcoinerSocial.url}`)
+            return bitSo
+          })
+          bitSo.on('error', () => {
+            console.log(`Failed to connect to ${bitcoinerSocial.url}`)
+            console.error(`No Nostr Relay available`)
+          })
+        })
+      }
+      let relay = getRelay()
+      let sub = relay.sub([
+        {
+          kinds: [1],
+          authors: ['2e3e962542609b370e0441f3a45c139c7e548287d63672dd6cc0717d825703f3']
+        }
+      ])
+      sub.on('event', event => {
+        console.log('got event:', event)
+      })
+
+    </script>
     <h1><%= title %></h1>
     <p>Post messages by broadcasting files via Blockstream Satellite <a href="https://blockstream.com/satellite-queue/">here</a>. Supported: text, jpg/jpeg, png, gif, and pgp messages.</p>
     <p><a href="/rss.xml">RSS feed</a></p>
+    <p>Now on Nostr! Our public key is <code>2e3e962542609b370e0441f3a45c139c7e548287d63672dd6cc0717d825703f3</code></p>
     <p>Here are the 30 latest files downloaded via Blockstream Satellite API:</p>
     <table border="1">
       <tr>
