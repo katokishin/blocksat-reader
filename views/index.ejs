@@ -31,7 +31,10 @@
           })
         })
       }
-      let relay = (await getRelay())
+      let relay = (async () => {
+        let r = await getRelay()
+        return r
+      })
       let sub = relay.sub([
         {
           kinds: [1],
