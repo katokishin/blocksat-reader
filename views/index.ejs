@@ -10,26 +10,28 @@
       let damus = window.NostrTools.relayInit('wss://relay.damus.io')
       let bitSo = window.NostrTools.relayInit('wss://nostr.bitcoiner.social')
 
-      async function getRelay() {
-        damus.connect()
-        damus.on('connect', () => {
-          console.log(`Connected to ${damus.url}`)
-          return damus
-        })
-        damus.on('error', () => {
-          console.log(`Failed to connect to ${damus.url}`)
-          bitSo.connect()
-          bitSo.on('connect', () => {
-            console.log(`Connected to ${bitcoinerSocial.url}`)
-            return bitSo
+      function getRelay() {
+        return new Promise((resolve, reject) => {
+          damus.connect()
+          damus.on('connect', () => {
+            console.log(`Connected to ${damus.url}`)
+            resolve(damus)
           })
-          bitSo.on('error', () => {
-            console.log(`Failed to connect to ${bitcoinerSocial.url}`)
-            console.error(`No Nostr Relay available`)
+          damus.on('error', () => {
+            console.log(`Failed to connect to ${damus.url}`)
+            bitSo.connect()
+            bitSo.on('connect', () => {
+              console.log(`Connected to ${bitcoinerSocial.url}`)
+              resolve(bitSo)
+            })
+            bitSo.on('error', () => {
+              console.log(`Failed to connect to ${bitcoinerSocial.url}`)
+              reject(`No Nostr Relay available`)
+            })
           })
         })
       }
-      let relay = getRelay()
+      let relay = await getRelay()
       let sub = relay.sub([
         {
           kinds: [1],
