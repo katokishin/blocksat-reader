@@ -35,7 +35,6 @@ if (process.env.ENVIRONMENT === 'antenna') {
   cron.schedule('* * * * *', async () => {
     try {
       const damus = nostr.relayInit('wss://relay.damus.io')
-      const rsslay = nostr.relayInit('wss://rsslay.fiatjaf.com')
       const bitcoinerSocial = nostr.relayInit('wss://nostr.bitcoiner.social')
       
       damus.connect()
@@ -44,13 +43,6 @@ if (process.env.ENVIRONMENT === 'antenna') {
       })
       damus.on('error', () => {
         console.log(`Failed to connect to ${damus.url}`)
-      })
-      rsslay.connect()
-      rsslay.on('connect', () => {
-        console.log(`Connected to ${rsslay.url}`)
-      })
-      rsslay.on('error', () => {
-        console.log(`Failed to connect to ${rsslay.url}`)
       })
       bitcoinerSocial.connect()
       bitcoinerSocial.on('connect', () => {
@@ -73,13 +65,18 @@ if (process.env.ENVIRONMENT === 'antenna') {
       if (s3files.length > 1) {
         latestS3 = s3files[0].Key.split('/')[1] //Index 0 is the downloads/ folder itself
       }
-      // console.log(`Latest file is ${latestS3}`)
-  
+      // console.log(`Latest file on S3 is ${latestS3}`)
+      // console.log(`parseInt(latestS3): ${parseInt(latestS3)}`)
       // Check if there exist filenames newer than latestS3 on local folder
       let fileList = fs.readdirSync(process.env.BLOCKSAT_DIR)
-      let updateList = fileList.filter(name => parseInt(name) - parseInt(latestS3) > 0)
+      let updateList = fileList.filter(name => {
+        if (parseInt(name) > parseInt(latestS3)) {
+          console.log(`parseInt(name): ${parseInt(name)} is greater than ${parseInt(latestS3)}`)
+          return true
+        } else { return false }
+      })
       if (updateList.length === 0) {
-        // console.log('No updates to be made')
+        console.log('No updates to be made')
         return
       }
       console.log('Files not yet synced: ' + updateList)
@@ -105,7 +102,7 @@ if (process.env.ENVIRONMENT === 'antenna') {
           Body: fs.readFileSync(process.env.BLOCKSAT_DIR + '/' + file),
           ContentType: mimeType,
           Key: 'downloads/' + file
-        })
+        }).promise()
         // Upload was successful, so let's also add the file to the database
         // This is where Nostr relays should be notified too
         let values = ''
@@ -122,12 +119,9 @@ if (process.env.ENVIRONMENT === 'antenna') {
               
           let event = await signEvent(`New image received on Blocksat: https://${process.env.S3_BUCKET_NAME}.s3.amazonaws.com/downloads/${file}`)
           damus.publish(event)
-          rsslay.publish(event)
           bitcoinerSocial.publish(event)
           damus.on('ok', () => 'damus success')
           damus.on('failed', () => { console.error('Failed to post to damus') })
-          rsslay.on('ok', () => 'rsslay success')
-          rsslay.on('failed', () => { console.error('Failed to post to rsslay') })
           bitcoinerSocial.on('ok', () => 'bitcoinerSocial success')
           bitcoinerSocial.on('failed', () => { console.error('Failed to post to bitcoinerSocial') })
                 
@@ -143,19 +137,15 @@ if (process.env.ENVIRONMENT === 'antenna') {
 
           let event = await signEvent(`Overheard on Blocksat: ${fs.readFileSync(process.env.BLOCKSAT_DIR + '/' + file)}`)
           damus.publish(event)
-          rsslay.publish(event)
           bitcoinerSocial.publish(event)
           damus.on('ok', () => 'damus success')
           damus.on('failed', () => { console.error('Failed to post to damus') })
-          rsslay.on('ok', () => 'rsslay success')
-          rsslay.on('failed', () => { console.error('Failed to post to rsslay') })
           bitcoinerSocial.on('ok', () => 'bitcoinerSocial success')
           bitcoinerSocial.on('failed', () => { console.error('Failed to post to bitcoinerSocial') })
         }
         console.log(upload)
       }
       await damus.close()
-      await rsslay.close()
       await bitcoinerSocial.close()
     } catch (err) {
       console.error(err)
