@@ -14,13 +14,13 @@ require('dotenv').config()
 // Nostr prep
 const { WebSocket } = require('websocket-polyfill')
 const fetch = require('node-fetch')
-const nostr = require('nostr-tools')
 if (!globalThis.fetch) {
   globalThis.fetch = fetch
 }
 if (!globalThis.WebSocket) {
   globalThis.WebSocket = WebSocket
 }
+const nostr = require('nostr-tools')
 
 // Upload all new files to S3 every minute
 if (process.env.ENVIRONMENT === 'antenna') {
