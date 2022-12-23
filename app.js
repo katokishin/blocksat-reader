@@ -123,34 +123,39 @@ if (process.env.ENVIRONMENT === 'antenna') {
           new Entry(
             { type: mimeType, name: file, url: `https://${process.env.S3_BUCKET_NAME}.s3.amazonaws.com/downloads/${file}`, text: ''})
             .save({}, { method: 'insert', require: true })
-            .then(model => {
+            .then(async model => {
               console.log(`File ${file} added to database`)
+              try {
+                let event = await signEvent(JSON.stringify({
+                  type: mimeType, name: file, url: `https://${process.env.S3_BUCKET_NAME}.s3.amazonaws.com/downloads/${file}`, text: ''
+                }))
+                connectAndSendNostr(event)
+              } catch (err) {
+                console.error(err)
+              }
             })
             .catch(err => {
               console.error(err)
             })
-              
-          let event = await signEvent(JSON.stringify({
-            type: mimeType, name: file, url: `https://${process.env.S3_BUCKET_NAME}.s3.amazonaws.com/downloads/${file}`, text: ''
-          }))
-          connectAndSendNostr(event)
                 
         } else if (mimeType === 'text/plain' || mimeType === 'text/html' || mimeType === 'application/pgp') {
           new Entry({ type: mimeType, name: file, url: '', text: fs.readFileSync(process.env.BLOCKSAT_DIR + '/' + file)})
             .save({}, { method: 'insert', require: true })
-            .then(model => {
+            .then(async model => {
               console.log(`File ${file} added to database`)
+              try {
+                let event = await signEvent(JSON.stringify({
+                  type: mimeType, name: file, url: '', text: fs.readFileSync(process.env.BLOCKSAT_DIR + '/' + file)
+                }))
+                connectAndSendNostr(event)
+              } catch (err) {
+                console.error(err)
+              }
             })
             .catch(err => {
               console.error(err)
             })
-
-          let event = await signEvent(JSON.stringify({
-            type: mimeType, name: file, url: '', text: fs.readFileSync(process.env.BLOCKSAT_DIR + '/' + file)
-          }))
-          connectAndSendNostr(event)
         }
-        console.log(upload)
       }
     } catch (err) {
       console.error(err)
