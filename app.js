@@ -133,7 +133,7 @@ if (process.env.ENVIRONMENT === 'antenna') {
             })
                 
         } else if (mimeType === 'text/plain' || mimeType === 'text/html' || mimeType === 'application/pgp') {
-          new Entry({ type: mimeType, name: file, url: '', text: fs.readFileSync(process.env.BLOCKSAT_DIR + '/' + file)})
+          new Entry({ type: mimeType, name: file, url: '', text: fs.readFileSync(process.env.BLOCKSAT_DIR + '/' + file, 'utf8')})
             .save({}, { method: 'insert', require: true })
             .then(async model => {
               console.log(`File ${file} added to database`)
