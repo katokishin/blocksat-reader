@@ -139,7 +139,7 @@ if (process.env.ENVIRONMENT === 'antenna') {
               console.log(`File ${file} added to database`)
               try {
                 submitNostr(JSON.stringify({
-                  type: mimeType, name: file, url: '', text: fs.readFileSync(process.env.BLOCKSAT_DIR + '/' + file)
+                  type: mimeType, name: file, url: '', text: fs.readFileSync(process.env.BLOCKSAT_DIR + '/' + file, 'utf8')
                 }))
               } catch (err) {
                 console.error(err)
