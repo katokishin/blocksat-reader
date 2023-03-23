@@ -52,9 +52,13 @@ if (process.env.ENVIRONMENT === 'antenna') {
   })
 
   async function submitNostr(event) {
-    signed = await signEvent(event)
-    damus.publish(signed)
-    bitcoinerSocial.publish(signed)
+    try {
+      signed = await signEvent(event)
+      damus.publish(signed)
+      bitcoinerSocial.publish(signed)
+    } catch (err) {
+      console.log(err)
+    }
   }
 
   cron.schedule('* * * * *', async () => {
