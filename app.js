@@ -33,7 +33,8 @@ if (process.env.ENVIRONMENT === 'antenna') {
 
   const Entry = require('./models/entry')
 
-  // Connect to Nostr relays
+  // Connect to Nostr relays -- disabled for now
+  /*
   const damus = nostr.relayInit('wss://relay.damus.io')
   const bitcoinerSocial = nostr.relayInit('wss://nostr.bitcoiner.social')
   damus.connect()
@@ -49,8 +50,10 @@ if (process.env.ENVIRONMENT === 'antenna') {
   })
   bitcoinerSocial.on('disconnect', () => {
     bitcoinerSocial.connect()
-  })
+  })\
+  */
 
+  // Submit event to nostr
   async function submitNostr(event) {
     try {
       signed = await signEvent(event)
@@ -125,9 +128,12 @@ if (process.env.ENVIRONMENT === 'antenna') {
             .then(async model => {
               console.log(`File ${file} added to database`)
               try {
+                // Submit to nostr -- disabled for now
+                /*
                 submitNostr(JSON.stringify({
                   type: mimeType, name: file, url: `https://${process.env.S3_BUCKET_NAME}.s3.amazonaws.com/downloads/${file}`, text: ''
                 }))
+                */
               } catch (err) {
                 console.error(err)
               }
@@ -142,9 +148,12 @@ if (process.env.ENVIRONMENT === 'antenna') {
             .then(async model => {
               console.log(`File ${file} added to database`)
               try {
+                // Submit to nostr -- disabled for now
+                /*
                 submitNostr(JSON.stringify({
                   type: mimeType, name: file, url: '', text: fs.readFileSync(process.env.BLOCKSAT_DIR + '/' + file, 'utf8')
                 }))
+                */
               } catch (err) {
                 console.error(err)
               }
@@ -160,6 +169,7 @@ if (process.env.ENVIRONMENT === 'antenna') {
   })
 }
 
+// Sign nostr event
 async function signEvent(content) {
   try {
     let event = {
