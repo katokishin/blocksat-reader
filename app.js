@@ -13,10 +13,6 @@ require('dotenv').config()
 
 // Nostr prep
 const { WebSocket } = require('websocket-polyfill')
-const fetch = require('node-fetch')
-if (!globalThis.fetch) {
-  globalThis.fetch = fetch
-}
 if (!globalThis.WebSocket) {
   globalThis.WebSocket = WebSocket
 }
@@ -64,15 +60,16 @@ if (process.env.ENVIRONMENT === 'antenna') {
     }
   }
 
+  /*
   cron.schedule('* * * * *', async () => {
     try {
       // console.log('Running cronjob...')
       // Check for latest file on S3
       let today = new Date()
       const days = 86400000
-      const monthago = new Date(today - (30*days))
+      const monthago = new Date(today - (180*days))
       let data = await s3.listObjectsV2({ Bucket: process.env.S3_BUCKET_NAME, Prefix: 'downloads/', StartAfter: `downloads/${monthago.toISOString().slice(0,10).replaceAll('-', '')}000000` }).promise()
-      
+
       // Order from newest to oldest and find newest one
       let s3files = data.Contents
       s3files.sort((a, b) => parseInt(b.Key.split('/')[1]) - parseInt(a.Key.split('/')[1]))
@@ -80,8 +77,8 @@ if (process.env.ENVIRONMENT === 'antenna') {
       if (s3files.length > 1) {
         latestS3 = s3files[0].Key.split('/')[1] //Index 0 is the downloads/ folder itself
       }
-      // console.log(`Latest file on S3 is ${latestS3}`)
-      // console.log(`parseInt(latestS3): ${parseInt(latestS3)}`)
+      console.log(`Latest file on S3 is ${latestS3}`)
+      console.log(`parseInt(latestS3): ${parseInt(latestS3)}`)
       // Check if there exist filenames newer than latestS3 on local folder
       let fileList = fs.readdirSync(process.env.BLOCKSAT_DIR)
       let updateList = fileList.filter(name => {
@@ -129,11 +126,9 @@ if (process.env.ENVIRONMENT === 'antenna') {
               console.log(`File ${file} added to database`)
               try {
                 // Submit to nostr -- disabled for now
-                /*
-                submitNostr(JSON.stringify({
-                  type: mimeType, name: file, url: `https://${process.env.S3_BUCKET_NAME}.s3.amazonaws.com/downloads/${file}`, text: ''
-                }))
-                */
+                // submitNostr(JSON.stringify({
+                //   type: mimeType, name: file, url: `https://${process.env.S3_BUCKET_NAME}.s3.amazonaws.com/downloads/${file}`, text: ''
+                // }))
               } catch (err) {
                 console.error(err)
               }
@@ -149,11 +144,9 @@ if (process.env.ENVIRONMENT === 'antenna') {
               console.log(`File ${file} added to database`)
               try {
                 // Submit to nostr -- disabled for now
-                /*
-                submitNostr(JSON.stringify({
-                  type: mimeType, name: file, url: '', text: fs.readFileSync(process.env.BLOCKSAT_DIR + '/' + file, 'utf8')
-                }))
-                */
+                // submitNostr(JSON.stringify({
+                //   type: mimeType, name: file, url: '', text: fs.readFileSync(process.env.BLOCKSAT_DIR + '/' + file, 'utf8')
+                // }))
               } catch (err) {
                 console.error(err)
               }
@@ -167,6 +160,7 @@ if (process.env.ENVIRONMENT === 'antenna') {
       console.error(err)
     }
   })
+  */
 }
 
 // Sign nostr event
