@@ -9,15 +9,15 @@
     "aws-sdk": "^2.949.0",
     "bluebird": "^3.7.2",
     "bookshelf": "^1.2.0",
-    "cookie-parser": "~1.4.4",
-    "debug": "~2.6.9",
-    "dotenv": "^10.0.0",
-    "ejs": "~2.6.1",
-    "express": "~4.16.1",
-    "http-errors": "~1.6.3",
-    "knex": "0.21.21",
+    "cookie-parser": "^1.4.7",
+    "debug": "^4.4.3",
+    "dotenv": "^16.6.1",
+    "ejs": "^3.1.10",
+    "express": "^4.21.2",
+    "http-errors": "^2.0.1",
+    "knex": "^3.3.0",
     "mmmagic": "^0.5.3",
-    "morgan": "~1.9.1",
+    "morgan": "1.10",
     "node-cron": "^3.0.0",
     "node-fetch": "^2.6.6",
     "nodemon": "^2.0.12",
@@ -25,5 +25,8 @@
     "pg": "^8.6.0",
     "rss": "^1.2.2",
     "websocket-polyfill": "^0.0.3"
+  },
+  "engines": {
+    "node": ">=26.12.1"
   }
 }
